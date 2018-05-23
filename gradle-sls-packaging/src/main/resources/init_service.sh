@@ -46,6 +46,7 @@ esac
 
 ACTION=$1
 SCRIPT_DIR="service/bin"
+INIT_SCRIPT="@initScript@"
 SERVICE="@serviceName@"
 PIDFILE="var/run/$SERVICE.pid"
 STATIC_LAUNCHER_CONFIG="service/bin/launcher-static.yml"
@@ -54,7 +55,7 @@ STATIC_LAUNCHER_CHECK_CONFIG="service/bin/launcher-check.yml"
 
 case $ACTION in
 start)
-    if service/bin/init.sh status &> /dev/null; then
+    if service/bin/$INIT_SCRIPT status &> /dev/null; then
         echo "Process is already running"
         exit 0
     fi
@@ -63,7 +64,7 @@ start)
     # ensure log and pid directories exist
     mkdir -p "var/log" "var/run"
     PID=$($LAUNCHER_CMD $STATIC_LAUNCHER_CONFIG $CUSTOM_LAUNCHER_CONFIG > var/log/$SERVICE-startup.log 2>&1 & echo $!)
-    # always write $PIDFILE so that `init.sh status` for a service that crashed when starting will return 1, not 3
+    # always write $PIDFILE so that `$INIT_SCRIPT status` for a service that crashed when starting will return 1, not 3
     echo $PID > $PIDFILE
     sleep 5
     if is_process_service $PID $SERVICE; then
@@ -95,7 +96,7 @@ status)
 ;;
 stop)
     printf "%-50s" "Stopping '$SERVICE'..."
-    if service/bin/init.sh status &> /dev/null; then
+    if service/bin/$INIT_SCRIPT status &> /dev/null; then
         PID=$(cat $PIDFILE)
         kill $PID
         COUNTER=0
@@ -124,11 +125,11 @@ stop)
     fi
 ;;
 console)
-    if service/bin/init.sh status &> /dev/null; then
+    if service/bin/$INIT_SCRIPT status &> /dev/null; then
         echo "Process is already running"
         exit 1
     fi
-    trap "service/bin/init.sh stop &> /dev/null" SIGTERM EXIT
+    trap "service/bin/$INIT_SCRIPT stop &> /dev/null" SIGTERM EXIT
     mkdir -p "$(dirname $PIDFILE)"
 
     $LAUNCHER_CMD $STATIC_LAUNCHER_CONFIG $CUSTOM_LAUNCHER_CONFIG &
@@ -136,8 +137,8 @@ console)
     wait
 ;;
 restart)
-    service/bin/init.sh stop
-    service/bin/init.sh start
+    service/bin/$INIT_SCRIPT stop
+    service/bin/$INIT_SCRIPT start
 ;;
 check)
     printf "%-50s" "Checking health of '$SERVICE'..."

@@ -28,22 +28,43 @@ class CreateInitScriptTask extends DefaultTask {
     @Input
     String serviceName
 
+    @Input
+    String sidecarInitScript
+
     CreateInitScriptTask() {
         group = JavaServiceDistributionPlugin.GROUP_NAME
         description = "Generates daemonizing init.sh script."
     }
 
     @OutputFile
-    File getOutputFile() {
-        return new File("${project.buildDir}/scripts/init.sh")
+    File getOutputFile(String filename) {
+        return new File("${project.buildDir}/scripts/${filename}")
     }
 
     @TaskAction
-    void createInitScript() {
+    void createInitScripts() {
+        if (project.hasProperty('sidecarInitScript')) {
+            emitServiceInitScript('init_service.sh')
+            emitMasterInitScript()
+        } else {
+            emitServiceInitScript('init.sh')
+        }
+    }
+
+    void emitMasterInitScript() {
         EmitFiles.replaceVars(
-                JavaServiceDistributionPlugin.class.getResourceAsStream('/init.sh'),
-                getOutputFile().toPath(),
-                ['@serviceName@': serviceName])
+                JavaServiceDistributionPlugin.class.getResourceAsStream('/init_master.sh'),
+                getOutputFile('init.sh').toPath(),
+                ['@sidecarInitScript@': sidecarInitScript])
+                .toFile()
+                .setExecutable(true)
+    }
+
+    void emitServiceInitScript(String targetFilename) {
+        EmitFiles.replaceVars(
+                JavaServiceDistributionPlugin.class.getResourceAsStream('/init_service.sh'),
+                getOutputFile(targetFilename).toPath(),
+                ['@serviceName': serviceName, '@initScript': targetFilename])
                 .toFile()
                 .setExecutable(true)
     }
