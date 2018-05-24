@@ -39,8 +39,8 @@ class CreateInitScriptTask extends DefaultTask {
     }
 
     @OutputFile
-    File getOutputFile() {
-        return new File("${project.buildDir}/scripts/init.sh")
+    File getOutputFile(String filename) {
+        return new File("${project.buildDir}/scripts/${filename}")
     }
 
     @TaskAction
