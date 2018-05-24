@@ -28,6 +28,7 @@ class JavaServiceDistributionExtension extends BaseDistributionExtension {
     private boolean enableManifestClasspath = false
     private String javaHome = null
     private List<String> excludeFromVar = ['log', 'run']
+    private String sidecarInitScript = null
 
     JavaServiceDistributionExtension(Project project) {
         super(project)
@@ -116,5 +117,9 @@ class JavaServiceDistributionExtension extends BaseDistributionExtension {
 
     List<String> getExcludeFromVar() {
         return excludeFromVar
+    }
+
+    String getSidecarInitScript() {
+        return sidecarInitScript
     }
 }

@@ -103,7 +103,7 @@ class ServiceDistributionPluginTests extends GradleTestSpec {
         '''.stripIndent()
 
         then:
-        def version02BuildOutput = runSuccessfully(':build', ':distTar', ':untar02').output
+        def version02BuildOutput = runSuccessfully(':build', ':distTar', ':untar02', '-i').output
         version02BuildOutput ==~ /(?m)(?s).*:createCheckScript UP-TO-DATE.*/
         version02BuildOutput ==~ /(?m)(?s).*:createInitScript UP-TO-DATE.*/
         version02BuildOutput ==~ /(?m)(?s).*:createLaunchConfig.*/

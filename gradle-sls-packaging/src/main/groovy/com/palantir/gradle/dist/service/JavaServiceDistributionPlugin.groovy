@@ -74,7 +74,7 @@ class JavaServiceDistributionPlugin implements Plugin<Project> {
 
         CreateInitScriptTask initScript = project.tasks.create('createInitScript', CreateInitScriptTask)
         project.afterEvaluate {
-            initScript.configure(distributionExtension.serviceName)
+            initScript.configure(distributionExtension.serviceName, distributionExtension.sidecarInitScript)
         }
 
         CreateCheckScriptTask checkScript = project.tasks.create('createCheckScript', CreateCheckScriptTask)

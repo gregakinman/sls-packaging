@@ -20,6 +20,7 @@ import com.palantir.gradle.dist.service.JavaServiceDistributionPlugin
 import com.palantir.gradle.dist.service.util.EmitFiles
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
@@ -29,6 +30,7 @@ class CreateInitScriptTask extends DefaultTask {
     String serviceName
 
     @Input
+    @Optional
     String sidecarInitScript
 
     CreateInitScriptTask() {
@@ -37,17 +39,17 @@ class CreateInitScriptTask extends DefaultTask {
     }
 
     @OutputFile
-    File getOutputFile(String filename) {
-        return new File("${project.buildDir}/scripts/${filename}")
+    File getOutputFile() {
+        return new File("${project.buildDir}/scripts/init.sh")
     }
 
     @TaskAction
     void createInitScripts() {
-        if (project.hasProperty('sidecarInitScript')) {
+        if (sidecarInitScript == null) {
+            emitServiceInitScript('init.sh')
+        } else {
             emitServiceInitScript('init_service.sh')
             emitMasterInitScript()
-        } else {
-            emitServiceInitScript('init.sh')
         }
     }
 
@@ -55,7 +57,7 @@ class CreateInitScriptTask extends DefaultTask {
         EmitFiles.replaceVars(
                 JavaServiceDistributionPlugin.class.getResourceAsStream('/init_master.sh'),
                 getOutputFile('init.sh').toPath(),
-                ['@sidecarInitScript@': sidecarInitScript])
+                ['@sidecarInitScript@': project.property('sidecarInitScript').toString()])
                 .toFile()
                 .setExecutable(true)
     }
@@ -64,12 +66,13 @@ class CreateInitScriptTask extends DefaultTask {
         EmitFiles.replaceVars(
                 JavaServiceDistributionPlugin.class.getResourceAsStream('/init_service.sh'),
                 getOutputFile(targetFilename).toPath(),
-                ['@serviceName': serviceName, '@initScript': targetFilename])
+                ['@serviceName@': serviceName, '@initScript@': targetFilename])
                 .toFile()
                 .setExecutable(true)
     }
 
-    void configure(String serviceName) {
+    void configure(String serviceName, String sidecarInitScript) {
         this.serviceName = serviceName
+        this.sidecarInitScript = sidecarInitScript
     }
 }
